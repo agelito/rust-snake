@@ -13,7 +13,7 @@ use sdl_game_window::{GameWindowState, SdlGameWindow};
 fn main() {
     println!(
         "Welcome to {} application running on {}.",
-        "game"",
+        "snake",
         sdl2::get_platform()
     );
 
