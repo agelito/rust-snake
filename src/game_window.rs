@@ -1,17 +1,15 @@
-use sdl2::event::Event;
-use sdl2::event::WindowEvent;
+use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
-use sdl2::rect::Point;
-use sdl2::rect::Rect;
-use sdl2::render::WindowCanvas;
+use sdl2::rect::{Point, Rect};
+use sdl2::render::{TextureQuery, WindowCanvas};
+use sdl2::ttf::Sdl2TtfContext;
 use sdl2::EventPump;
 
 use crate::renderer::Renderer;
 
-pub struct SdlGameWindow {
-    // context: Sdl,
-    // video: VideoSubsystem,
+pub struct GameWindow {
+    ttf: Sdl2TtfContext,
     canvas: WindowCanvas,
     event_pump: EventPump,
     screen_center_x: i32,
@@ -24,8 +22,8 @@ pub enum GameWindowState {
     Closed,
 }
 
-impl SdlGameWindow {
-    pub fn create(title: &str, initial_size: (u32, u32)) -> SdlGameWindow {
+impl GameWindow {
+    pub fn create(title: &str, initial_size: (u32, u32)) -> GameWindow {
         let context = sdl2::init().unwrap();
         let video = context.video().unwrap();
 
@@ -36,23 +34,21 @@ impl SdlGameWindow {
             .allow_highdpi()
             .build()
             .unwrap();
+        let ttf = sdl2::ttf::init().unwrap();
 
-        let mut canvas = window
+        let canvas = window
             .into_canvas()
             .accelerated()
             .present_vsync()
             .build()
             .unwrap();
 
-        canvas.set_draw_color(Color::RGB(0, 0, 0));
-        canvas.clear();
-        canvas.present();
-
         let event_pump = context.event_pump().unwrap();
 
         let center_x = (initial_size.0 / 2) as i32;
         let center_y = (initial_size.1 / 2) as i32;
-        SdlGameWindow {
+        GameWindow {
+            ttf,
             canvas,
             event_pump,
             screen_center_x: center_x,
@@ -105,8 +101,8 @@ impl SdlGameWindow {
     }
 }
 
-impl Renderer for SdlGameWindow {
-    fn push_rect(&mut self, center_x: i32, center_y: i32, width: u32, height: u32, color: &Color) {
+impl Renderer for GameWindow {
+    fn draw_rect(&mut self, center_x: i32, center_y: i32, width: u32, height: u32, color: &Color) {
         let center = Point::new(
             center_x + self.screen_center_x,
             center_y + self.screen_center_y,
@@ -115,5 +111,23 @@ impl Renderer for SdlGameWindow {
 
         self.canvas.set_draw_color(*color);
         self.canvas.draw_rect(rect).unwrap();
+    }
+
+    fn draw_text(&mut self, text: String, x: i32, y: i32, color: &Color) {
+        let font = self.ttf.load_font("ARCADECLASSIC.TTF", 64).unwrap();
+
+        let texture_creator = self.canvas.texture_creator();
+        let surface = font.render(&text).blended(*color).unwrap();
+
+        let texture = texture_creator
+            .create_texture_from_surface(surface)
+            .unwrap();
+
+        self.canvas.set_draw_color(*color);
+
+        let TextureQuery { width, height, .. } = texture.query();
+        let rect = Rect::from((x, y, width, height));
+
+        self.canvas.copy(&texture, None, rect).unwrap();
     }
 }

@@ -1,5 +1,6 @@
+mod game_window;
 mod renderer;
-mod sdl_game_window;
+mod resources;
 mod snake_game;
 
 use ::std::time::Duration;
@@ -8,7 +9,7 @@ use snake_game::{Direction, SnakeGame};
 
 extern crate sdl2;
 
-use sdl_game_window::{GameWindowState, SdlGameWindow};
+use game_window::{GameWindow, GameWindowState};
 
 fn main() {
     println!(
@@ -17,7 +18,12 @@ fn main() {
         sdl2::get_platform()
     );
 
-    let mut game_window = SdlGameWindow::create("raytracer2", (800, 600));
+    resources::extract_resources(&[(
+        "ARCADECLASSIC.TTF",
+        include_bytes!("resources/ARCADECLASSIC.TTF"),
+    )]);
+
+    let mut game_window = GameWindow::create("snake", (800, 600));
 
     let mut snake_game = SnakeGame::new(16, 16);
 
