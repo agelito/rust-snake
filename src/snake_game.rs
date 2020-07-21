@@ -1,6 +1,9 @@
+use super::game_state::State;
+use super::main_menu::MainMenu;
 use crate::renderer::Renderer;
 
 use rand::Rng;
+use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use std::cmp::PartialEq;
 
@@ -131,7 +134,7 @@ impl SnakeGame {
         self.score += 1;
     }
 
-    pub fn tick(&mut self) {
+    pub fn tick(&mut self) -> Option<State> {
         self.game_ticks = self.game_ticks + 1;
         if self.game_ticks >= self.ticks_per_movement {
             self.game_ticks = 0;
@@ -152,17 +155,29 @@ impl SnakeGame {
             };
 
             match self.snake.move_to(next_head, eat) {
-                None => println!("game over!"),
+                None => return Some(State::Menu(MainMenu::new())),
                 _ => {}
             };
         }
+
+        None
     }
+    pub fn handle_input(&mut self, keys: &Vec<Keycode>) {
+        for key in keys {
+            match key {
+                Keycode::Up => self.change_direction(Direction::North),
+                Keycode::Down => self.change_direction(Direction::South),
+                Keycode::Left => self.change_direction(Direction::West),
+                Keycode::Right => self.change_direction(Direction::East),
+                _ => {}
+            }
+        }
+    }
+
     pub fn render(&self, renderer: &mut dyn Renderer) {
         self.render_world(renderer);
         self.render_food(renderer);
         self.render_snake(renderer);
-
-        renderer.draw_text(format!("score {}", self.score), 10, 10, &Color::WHITE)
     }
 
     pub fn change_direction(&mut self, direction: Direction) {
@@ -180,6 +195,8 @@ impl SnakeGame {
     }
 
     fn render_world(&self, renderer: &mut dyn Renderer) {
+        let top = -(self.tiles_y * self.tile_size + self.tile_size) / 2;
+
         renderer.draw_rect(
             0,
             0,
@@ -187,6 +204,8 @@ impl SnakeGame {
             (self.tiles_y * self.tile_size + self.tile_size) as u32,
             &Color::WHITE,
         );
+
+        renderer.draw_text(&format!("score {}", self.score), 0, top - 24, &Color::WHITE)
     }
 
     fn render_snake(&self, renderer: &mut dyn Renderer) {

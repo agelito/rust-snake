@@ -1,11 +1,12 @@
+mod game_state;
 mod game_window;
+mod main_menu;
 mod renderer;
 mod resources;
 mod snake_game;
 
 use ::std::time::Duration;
-use sdl2::keyboard::Keycode;
-use snake_game::{Direction, SnakeGame};
+use game_state::State;
 
 extern crate sdl2;
 
@@ -25,10 +26,7 @@ fn main() {
 
     let mut game_window = GameWindow::create("snake", (800, 600));
 
-    let mut snake_game = SnakeGame::new(16, 16);
-
-    let (width, height) = game_window.size();
-    println!("Created window of size: {}, {}", width, height);
+    let mut state = State::Menu(main_menu::MainMenu::new());
 
     'running: loop {
         match game_window.event_loop() {
@@ -36,21 +34,20 @@ fn main() {
             _ => {}
         }
 
-        let keys = game_window.pressed_keys();
-        for key in keys {
-            match key {
-                Keycode::Up => snake_game.change_direction(Direction::North),
-                Keycode::Down => snake_game.change_direction(Direction::South),
-                Keycode::Left => snake_game.change_direction(Direction::West),
-                Keycode::Right => snake_game.change_direction(Direction::East),
-                _ => {}
-            }
+        state.handle_input(game_window.pressed_keys());
+
+        state = match state.tick() {
+            Some(s) => s,
+            None => state,
+        };
+
+        match state {
+            State::Quit => break 'running,
+            _ => {}
         }
 
-        snake_game.tick();
-
         game_window.clear();
-        snake_game.render(&mut game_window);
+        state.render(&mut game_window);
         game_window.redraw();
 
         ::std::thread::sleep(Duration::new(0, 1_000_000_000_u32 / 60));

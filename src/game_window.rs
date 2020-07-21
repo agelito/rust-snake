@@ -57,10 +57,6 @@ impl GameWindow {
         }
     }
 
-    pub fn size(&self) -> (u32, u32) {
-        self.canvas.window().size()
-    }
-
     pub fn event_loop(&mut self) -> GameWindowState {
         self.pressed_keys.clear();
         for event in self.event_pump.poll_iter() {
@@ -113,7 +109,8 @@ impl Renderer for GameWindow {
         self.canvas.draw_rect(rect).unwrap();
     }
 
-    fn draw_text(&mut self, text: String, x: i32, y: i32, color: &Color) {
+    fn draw_text(&mut self, text: &String, x: i32, y: i32, color: &Color) {
+        // TODO: Learn lifetime specifiers so this loaded font can be cached.
         let font = self.ttf.load_font("ARCADECLASSIC.TTF", 64).unwrap();
 
         let texture_creator = self.canvas.texture_creator();
@@ -126,7 +123,12 @@ impl Renderer for GameWindow {
         self.canvas.set_draw_color(*color);
 
         let TextureQuery { width, height, .. } = texture.query();
-        let rect = Rect::from((x, y, width, height));
+
+        let center = Point::new(
+            x + self.screen_center_x - (width as i32 / 2),
+            y + self.screen_center_y - (height as i32 / 2),
+        );
+        let rect = Rect::from((center.x, center.y, width, height));
 
         self.canvas.copy(&texture, None, rect).unwrap();
     }
