@@ -14,3 +14,6 @@ rand = "*"
 version = "0.34.2"
 default-features = false
 features = ["image", "ttf"]
+
+[profile.release]
+lto = true
