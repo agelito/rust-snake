@@ -102,14 +102,14 @@ impl SnakeGame {
         let mut rng = rand::thread_rng();
         let food: Vec<Point> = (0..4)
             .map(|_| Point {
-                x: rng.gen_range(0, tiles_x as i32),
-                y: rng.gen_range(0, tiles_y as i32),
+                x: rng.gen_range(0, tiles_x),
+                y: rng.gen_range(0, tiles_y),
             })
             .collect();
 
         let snake_head = Point {
-            x: (tiles_x / 2) as i32,
-            y: (tiles_y / 2) as i32,
+            x: tiles_x / 2,
+            y: tiles_y / 2,
         };
 
         SnakeGame {
@@ -172,8 +172,8 @@ impl SnakeGame {
     fn generate_food(&mut self) {
         let mut rng = rand::thread_rng();
         let position = Point {
-            x: rng.gen_range(0, self.tiles_x as i32),
-            y: rng.gen_range(0, self.tiles_y as i32),
+            x: rng.gen_range(0, self.tiles_x),
+            y: rng.gen_range(0, self.tiles_y),
         };
 
         self.food.push(position);
@@ -223,8 +223,8 @@ impl SnakeGame {
         let half_size_y = self.tiles_y * self.tile_size / 2;
 
         Point {
-            x: -(half_size_x as i32) + point.x * self.tile_size as i32,
-            y: -(half_size_y as i32) + point.y * self.tile_size as i32,
+            x: -half_size_x + point.x * self.tile_size,
+            y: -half_size_y + point.y * self.tile_size,
         }
     }
 }
